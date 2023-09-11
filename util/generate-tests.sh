@@ -70,8 +70,8 @@ fi
 
 generate_changed=0
 generate_all=1
-srcpath=""
-outdir="./tmp"
+srcpath=./shared
+outdir=./tmp
 
 while [ "$1" != "" ]; do
   case "$1" in
@@ -81,7 +81,6 @@ while [ "$1" != "" ]; do
       ;;
     -f | --file)
       echo "Generating files for '$2'"
-      generate_changed=0
       srcpath=$2
       shift 2
       ;;
