@@ -2,13 +2,14 @@ Test code blocks in Markdown files.
 
 This project contains the following:
 
-- `util/generate-tests.sh`: Script to prepare Markdown code blocks for testing. 
+- `test/generate-tests.sh`: Script to prepare Markdown code blocks for testing. 
   It copies Markdown files to a temporary directory and substitutes real configuration values for placeholders in code blocks.
-- `util/run-tests.sh`: Script to pass Markdown test files to test runners for execution and reporting.
+- `test/run-tests.sh`: Script to pass Markdown test files to test runners for execution and reporting. Currently, this just passes the files created by `test/generate-tests.sh`
+to `pytest --codeblocks` for testing Python and shell code samples.
 
 ## Set configuration values
 
-`util/generate-tests.sh` assumes you have set environment variables for substituting placeholders in code blocks.
+`test/generate-tests.sh` assumes you have set environment variables for substituting placeholders in code blocks.
 
 Additionally, some code samples may specify a `.env` configuration file.
 For those, create a `.env` file and set your own configuration properties there--for example, in `.env.influxdbv3`:
@@ -27,13 +28,13 @@ Using a `.env` is generally preferable to using environment variables.
 Generate test files for Markdown files that have changed relative to your git `master` branch:
 
 ```sh
-sh ./util/generate-tests.sh -f ./examples
+sh ./test/generate-tests.sh -f ./examples
 ```
 
 To force regenerating all files:
 
 ```sh
-sh ./util/generate-tests.sh -f ./examples -a
+sh ./test/generate-tests.sh -f ./examples -a
 ```
 
 The default output directory is `./tmp`. Use the `-o` option to specify a different directory.
@@ -43,26 +44,29 @@ The default output directory is `./tmp`. Use the `-o` option to specify a differ
 Pass `./tmp` files to test runners:
 
 ```sh
-sh ./util/run-tests.sh
+sh ./test/run-tests.sh
 ```
 
 ### Test runners
 
 _Experimental--work in progress_
 
-pytest with the --codeblocks extension can extract code in python and shell code blocks and execute similar to unit tests (a non-zero exit code is a failure).
-To assert the output of a code block, add the
+`pytest` with the `--codeblocks` extension extracts code from python and shell Markdown code blocks
+and executes assertions for the code.
+If you don't assert a value, `--codeblocks` considers a non-zero exit code to be a failure.
 
-`<!--pytest-codeblocks:expected-output-->`
+To assert the output of a code block, place the
 
-comment tag after the code block and include the expected output--for example:
+```<!--pytest-codeblocks:expected-output-->```
+
+comment tag in your Markdown after the code block and include the expected output--for example:
 
 ```python
 print("Hello, world!")
 ```
 <!--pytest-codeblocks:Hello, world!-->
 
-Or, to output the expectation, include it in its own code block--for example:
+Or, to output the expectation in your Markdown content, include it in a separate code block--for example:
 
 <!--pytest-codeblocks:expected-output-->
 If successful, the output is the following:
@@ -71,21 +75,29 @@ If successful, the output is the following:
 Hello, world!
 ```
 
-#### Other potential tools
+`python --codeblocks` uses Python's `subprocess.run()` to execute shell code.
 
-The `runmd` NPM package runs `javascript` code blocks in Markdown and generates a new Markdown file with the code block output inserted.
+#### Future and related ideas
 
 The `codedown` NPM package extracts code from Markdown code blocks for each language and
 can pipe the output to a test runner for the language.
 
+`pytest` and `pytest-codeblocks` use the Python `Assertions` module to keep testing overhead low.
+Node.js also provides an `Assertions` package.
+
+The `runmd` NPM package runs `javascript` code blocks in Markdown and generates a new Markdown file with the code block output inserted.
+
 ## Troubleshoot
 
-### Python
+### Pytest collected 0 items
 
-`pytest --codeblocks` expects Python code blocks to use the following delimiter:
+Potential reasons:
 
-```python
-...
-```
+- See the test discovery options in `pytest.ini`.
+- For Python code blocks, use the following delimiter:
 
-It ignores code blocks in ```py```.
+    ```python
+    ...
+    ```
+
+  `pytest --codeblocks` ignores code blocks that use ```py```.

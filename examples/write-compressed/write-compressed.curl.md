@@ -3,6 +3,7 @@
 Write data and don't output anything; use the curl exit status.
 
 ```sh
+#!/bin/bash
 echo "mem,host=host1 used_percent=23.43234543 1641024000
 mem,host=host2 used_percent=26.81522361 1641027600
 mem,host=host1 used_percent=22.52984738 1641031200
