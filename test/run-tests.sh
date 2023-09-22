@@ -1,16 +1,15 @@
 #!/bin/bash
 
-$(./test/generate-tests.sh -f ./examples -a)
+for file in "$TEST_DIR"/*; do
+  if [ -f "$file" ]; then
+    # Replace placeholder values with environment variables.
+    sed -i '' 's|https:\/\/{{< influxdb/host >}}|$INFLUX_HOST|g;
+    s/API_TOKEN/$INFLUX_TOKEN/g;
+    s/DATABASE_TOKEN/$INFLUX_TOKEN/g;
+    s/BUCKET_NAME/$INFLUX_DATABASE/g;
+    s/DATABASE_NAME/$INFLUX_DATABASE/g;' \
+    $file
+  fi
+done
 
-# Directory that contains generated test files.
-testdir=./tmp
-
-# For each file in the test directory, run the code blocks as tests.
-# See configuration files for included patterns:
-#   - pytest.ini
-function process {
-  echo "Running pytest for Python and shell files in $testdir"
-  pytest --codeblocks $testdir
-}
-
-process
+pytest --codeblocks $TEST_DIR
